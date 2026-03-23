@@ -1,5 +1,8 @@
 # Build artifacts
 spc2channels
+spc2channels.exe
+test_runner
+build/
 *.o
 *.a
 
