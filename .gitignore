@@ -1,0 +1,12 @@
+# Build artifacts
+spc2channels
+*.o
+*.a
+
+# Output files
+*.wav
+*.mp3
+
+# OS
+.DS_Store
+Thumbs.db
