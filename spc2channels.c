@@ -16,7 +16,9 @@
 #include <errno.h>
 #include "gme/gme.h"
 
+#ifndef VERSION
 #define VERSION "1.0.0"
+#endif
 #define DEFAULT_SAMPLE_RATE 44100
 #define DEFAULT_FADE_MS     5000
 #define DEFAULT_DURATION_MS 120000

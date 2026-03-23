@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run unit tests
+        run: make test
+
+  build:
+    name: Build (with libgme)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install libgme
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake g++
+          git clone --depth 1 https://github.com/libgme/game-music-emu.git /tmp/gme
+          cd /tmp/gme
+          mkdir build && cd build
+          cmake .. -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_SHARED_LIBS=ON
+          make -j$(nproc)
+          sudo make install
+          sudo ldconfig
+
+      - name: Build spc2channels
+        run: make
+
+      - name: Verify binary
+        run: ./spc2channels --version

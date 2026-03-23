@@ -1,5 +1,8 @@
 # spc2channels
 
+[![CI](https://github.com/unagi/spc2channels/actions/workflows/ci.yml/badge.svg)](https://github.com/unagi/spc2channels/actions/workflows/ci.yml)
+[![Release](https://github.com/unagi/spc2channels/actions/workflows/release.yml/badge.svg)](https://github.com/unagi/spc2channels/actions/workflows/release.yml)
+
 A CLI tool to extract individual channels (voices) from SPC and other game music files as separate WAV files.
 
 Uses [game-music-emu (libgme)](https://github.com/libgme/game-music-emu) for sound chip emulation, rendering each voice in isolation via per-voice muting.
