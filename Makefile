@@ -23,7 +23,11 @@ GME_LIBS    = -lgme
 # Static link needs libstdc++ and libm
 STATIC_LIBS = $(GME_PREFIX)/lib/libgme.a -lstdc++ -lm
 
-.PHONY: all static clean install uninstall
+# Unit test (no libgme required - uses mock)
+TEST_SRC     = tests/test_spc2channels.c
+TEST_TARGET  = test_runner
+
+.PHONY: all static clean install uninstall test
 
 all: $(TARGET)
 
@@ -33,8 +37,14 @@ $(TARGET): $(SRC)
 static: $(SRC)
 	$(CC) $(CFLAGS) $(GME_CFLAGS) -o $(TARGET) $< $(STATIC_LIBS)
 
+test: $(TEST_TARGET)
+	./$(TEST_TARGET)
+
+$(TEST_TARGET): $(TEST_SRC) $(SRC) tests/mock_gme/gme/gme.h
+	$(CC) $(CFLAGS) -I tests/mock_gme -o $@ $(TEST_SRC)
+
 clean:
-	rm -f $(TARGET)
+	rm -f $(TARGET) $(TEST_TARGET)
 
 install: $(TARGET)
 	install -d $(DESTDIR)$(PREFIX)/bin
