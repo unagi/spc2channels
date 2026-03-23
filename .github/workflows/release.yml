@@ -29,18 +29,18 @@ jobs:
 
       - name: Build libgme (static)
         run: |
-          git clone --depth 1 https://github.com/libgme/game-music-emu.git /tmp/gme
-          cd /tmp/gme && mkdir build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=/tmp/gme-install \
-                   -DBUILD_SHARED_LIBS=OFF \
-                   -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-          make -j$(nproc)
-          make install
+          git clone --depth 1 https://github.com/libgme/game-music-emu.git build/gme-src
+          cmake -S build/gme-src -B build/gme-build \
+                -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/build/gme-install \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+          cmake --build build/gme-build -j$(nproc)
+          cmake --install build/gme-build
 
       - name: Build spc2channels (static)
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          make static GME_PREFIX=/tmp/gme-install \
+          make static GME_PREFIX=${{ github.workspace }}/build/gme-install \
             CFLAGS="-O2 -Wall -Wextra -DVERSION='\"${VERSION}\"'"
 
       - name: Verify binary
@@ -67,18 +67,18 @@ jobs:
 
       - name: Build libgme (static)
         run: |
-          git clone --depth 1 https://github.com/libgme/game-music-emu.git /tmp/gme
-          cd /tmp/gme && mkdir build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=/tmp/gme-install \
-                   -DBUILD_SHARED_LIBS=OFF \
-                   -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-          make -j$(sysctl -n hw.ncpu)
-          make install
+          git clone --depth 1 https://github.com/libgme/game-music-emu.git build/gme-src
+          cmake -S build/gme-src -B build/gme-build \
+                -DCMAKE_INSTALL_PREFIX=${{ github.workspace }}/build/gme-install \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+          cmake --build build/gme-build -j$(sysctl -n hw.ncpu)
+          cmake --install build/gme-build
 
       - name: Build spc2channels (static)
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          make static GME_PREFIX=/tmp/gme-install \
+          make static GME_PREFIX=${{ github.workspace }}/build/gme-install \
             CFLAGS="-O2 -Wall -Wextra -DVERSION='\"${VERSION}\"'"
 
       - name: Verify binary
@@ -110,26 +110,28 @@ jobs:
           update: true
           install: >-
             git
+            zip
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-ninja
             mingw-w64-ucrt-x86_64-zlib
             make
 
       - name: Build libgme (static)
         run: |
-          git clone --depth 1 https://github.com/libgme/game-music-emu.git /tmp/gme
-          cd /tmp/gme && mkdir build && cd build
-          cmake .. -G "MSYS Makefiles" \
-                   -DCMAKE_INSTALL_PREFIX=/tmp/gme-install \
-                   -DBUILD_SHARED_LIBS=OFF \
-                   -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-          cmake --build . -j$(nproc)
-          cmake --install .
+          git clone --depth 1 https://github.com/libgme/game-music-emu.git build/gme-src
+          cmake -S build/gme-src -B build/gme-build \
+                -G Ninja \
+                -DCMAKE_INSTALL_PREFIX="$(pwd)/build/gme-install" \
+                -DBUILD_SHARED_LIBS=OFF \
+                -DCMAKE_POSITION_INDEPENDENT_CODE=ON
+          cmake --build build/gme-build
+          cmake --install build/gme-build
 
       - name: Build spc2channels (static)
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          make static GME_PREFIX=/tmp/gme-install \
+          make static GME_PREFIX="$(pwd)/build/gme-install" \
             CFLAGS="-O2 -Wall -Wextra -DVERSION='\"${VERSION}\"'" \
             TARGET=spc2channels.exe
 
@@ -138,7 +140,7 @@ jobs:
 
       - name: Package
         run: |
-          7z a spc2channels-${GITHUB_REF_NAME}-windows-x86_64.zip \
+          zip spc2channels-${GITHUB_REF_NAME}-windows-x86_64.zip \
             spc2channels.exe LICENSE README.md
 
       - uses: actions/upload-artifact@v4
