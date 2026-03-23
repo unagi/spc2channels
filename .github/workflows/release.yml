@@ -58,42 +58,6 @@ jobs:
           name: linux-x86_64
           path: spc2channels-*.tar.gz
 
-  build-macos-x86_64:
-    name: Build macOS (x86_64, static)
-    needs: test
-    runs-on: macos-13
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Build libgme (static)
-        run: |
-          git clone --depth 1 https://github.com/libgme/game-music-emu.git /tmp/gme
-          cd /tmp/gme && mkdir build && cd build
-          cmake .. -DCMAKE_INSTALL_PREFIX=/tmp/gme-install \
-                   -DBUILD_SHARED_LIBS=OFF \
-                   -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-          make -j$(sysctl -n hw.ncpu)
-          make install
-
-      - name: Build spc2channels (static)
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          make static GME_PREFIX=/tmp/gme-install \
-            CFLAGS="-O2 -Wall -Wextra -DVERSION='\"${VERSION}\"'"
-
-      - name: Verify binary
-        run: ./spc2channels --version
-
-      - name: Package
-        run: |
-          tar czf spc2channels-${GITHUB_REF_NAME}-macos-x86_64.tar.gz \
-            spc2channels LICENSE README.md
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: macos-x86_64
-          path: spc2channels-*.tar.gz
-
   build-macos-arm64:
     name: Build macOS (arm64, static)
     needs: test
@@ -182,7 +146,7 @@ jobs:
 
   release:
     name: Create Release
-    needs: [build-linux, build-macos-x86_64, build-macos-arm64, build-windows]
+    needs: [build-linux, build-macos-arm64, build-windows]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
