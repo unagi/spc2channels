@@ -20,8 +20,8 @@ GME_CFLAGS  = -I$(GME_PREFIX)/include
 GME_LDFLAGS = -L$(GME_PREFIX)/lib
 GME_LIBS    = -lgme
 
-# Static link needs libstdc++ and libm
-STATIC_LIBS = $(GME_PREFIX)/lib/libgme.a -lstdc++ -lm
+# Static link needs libstdc++, libm, and zlib
+STATIC_LIBS = $(GME_PREFIX)/lib/libgme.a -lstdc++ -lm -lz
 
 # Unit test (no libgme required - uses mock)
 TEST_SRC     = tests/test_spc2channels.c
