@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install build tools
-        run: sudo apt-get update && sudo apt-get install -y cmake g++
+        run: sudo apt-get update && sudo apt-get install -y cmake g++ zlib1g-dev
 
       - name: Build libgme (static)
         run: |
@@ -109,8 +109,10 @@ jobs:
           msystem: UCRT64
           update: true
           install: >-
+            git
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-zlib
             make
 
       - name: Build libgme (static)
@@ -121,8 +123,8 @@ jobs:
                    -DCMAKE_INSTALL_PREFIX=/tmp/gme-install \
                    -DBUILD_SHARED_LIBS=OFF \
                    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-          make -j$(nproc)
-          make install
+          cmake --build . -j$(nproc)
+          cmake --install .
 
       - name: Build spc2channels (static)
         run: |
