@@ -114,7 +114,11 @@ static int ensure_dir(const char *path) {
     if (stat(path, &st) == 0) {
         return S_ISDIR(st.st_mode) ? 0 : -1;
     }
+#ifdef _WIN32
+    return mkdir(path);
+#else
     return mkdir(path, 0755);
+#endif
 }
 
 /* ================================================================
