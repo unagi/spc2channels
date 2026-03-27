@@ -95,7 +95,7 @@ gme2channels -c 1-4 input.spc ./output/
 gme2channels --mix input.spc ./output/
 ```
 
-### Disable SPC echo/reverb
+### Disable echo/reverb (SPC only)
 
 ```bash
 gme2channels --no-echo input.spc ./output/

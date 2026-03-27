@@ -281,6 +281,12 @@ static int render_pass(const options_t *opts, int voice_idx, int voice_count,
     if (opts->no_echo)
         gme_disable_echo(emu, 1);
 
+    /* Must disable silence detection BEFORE starting the track.
+     * Otherwise libgme's initial-silence skip can fast-forward the
+     * emulator by a different amount for each voice, shifting the
+     * audio content even when the file lengths match. */
+    gme_ignore_silence(emu, 1);
+
     err = gme_start_track(emu, 0);
     if (err) {
         fprintf(stderr, "Error starting track: %s\n", err);
@@ -289,7 +295,6 @@ static int render_pass(const options_t *opts, int voice_idx, int voice_count,
     }
 
     gme_set_fade(emu, play_length_ms);
-    gme_ignore_silence(emu, 1);
 
     /* Open output files */
     render_ctx_t ctx = { NULL, NULL, fmt, 0, 0 };
