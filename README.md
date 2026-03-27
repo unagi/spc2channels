@@ -1,9 +1,9 @@
-# spc2channels
+# gme2channels
 
 [![CI](https://github.com/unagi/spc2channels/actions/workflows/ci.yml/badge.svg)](https://github.com/unagi/spc2channels/actions/workflows/ci.yml)
 [![Release](https://github.com/unagi/spc2channels/actions/workflows/release.yml/badge.svg)](https://github.com/unagi/spc2channels/actions/workflows/release.yml)
 
-A CLI tool to extract individual channels (voices) from SPC and other game music files as separate WAV files.
+A CLI tool to extract individual channels (voices) from game music files as separate WAV files.
 
 Uses [game-music-emu (libgme)](https://github.com/libgme/game-music-emu) for sound chip emulation, rendering each voice in isolation via per-voice muting.
 
@@ -38,7 +38,7 @@ make -j$(nproc)
 sudo make install
 ```
 
-### Building spc2channels
+### Building gme2channels
 
 ```bash
 # Dynamic linking (requires libgme installed on the system)
@@ -56,19 +56,19 @@ make static GME_PREFIX=/path/to/gme
 ### Basic (all channels as stereo WAV)
 
 ```bash
-spc2channels input.spc ./output/
+gme2channels input.spc ./output/
 ```
 
 ### Show file and voice info
 
 ```bash
-spc2channels --info input.spc
+gme2channels --info input.spc
 ```
 
 ### Mono output
 
 ```bash
-spc2channels -f mono input.spc ./output/
+gme2channels -f mono input.spc ./output/
 ```
 
 ### Per-channel format override
@@ -76,35 +76,35 @@ spc2channels -f mono input.spc ./output/
 ```bash
 # Default mono, but split ch5 into separate L/R files
 # (useful when L and R carry different instruments)
-spc2channels -f mono --ch-format "5:split-lr" input.spc ./output/
+gme2channels -f mono --ch-format "5:split-lr" input.spc ./output/
 ```
 
 ### Extract specific channels only
 
 ```bash
 # Channels 1, 3, and 5
-spc2channels -c 1,3,5 input.spc ./output/
+gme2channels -c 1,3,5 input.spc ./output/
 
 # Channels 1 through 4
-spc2channels -c 1-4 input.spc ./output/
+gme2channels -c 1-4 input.spc ./output/
 ```
 
 ### Include full stereo mix
 
 ```bash
-spc2channels --mix input.spc ./output/
+gme2channels --mix input.spc ./output/
 ```
 
 ### Disable SPC echo/reverb
 
 ```bash
-spc2channels --no-echo input.spc ./output/
+gme2channels --no-echo input.spc ./output/
 ```
 
 ### Full example
 
 ```bash
-spc2channels \
+gme2channels \
   -f mono \
   --ch-format "5:split-lr,6:mono" \
   --mix \
@@ -124,7 +124,7 @@ spc2channels \
 | `-d, --duration <sec>` | Playback duration in seconds | auto-detect / 120s |
 | `--fade <sec>` | Fade-out duration in seconds | 5 |
 | `-r, --rate <hz>` | Sample rate | 44100 |
-| `--no-echo` | Disable SPC echo/reverb DSP effect | off |
+| `--no-echo` | Disable echo/reverb DSP effect (SPC only) | off |
 | `--mix` | Also output full stereo mix | off |
 | `--info` | Show file/voice info only (no rendering) | — |
 
@@ -143,6 +143,6 @@ All channel files are rendered with the same sample count and duration, so they 
 
 ## License
 
-MIT (spc2channels source code)
+MIT (gme2channels source code)
 
-This software links against [game-music-emu (libgme)](https://github.com/libgme/game-music-emu), which is licensed under **LGPL-2.1**. When using dynamic linking (the default), the MIT license applies to spc2channels with no additional restrictions. When distributing statically linked binaries, LGPL-2.1 Section 6 requirements apply (you must provide the means for users to relink with a modified libgme). See [LICENSE](LICENSE) for details.
+This software links against [game-music-emu (libgme)](https://github.com/libgme/game-music-emu), which is licensed under **LGPL-2.1**. When using dynamic linking (the default), the MIT license applies to gme2channels with no additional restrictions. When distributing statically linked binaries, LGPL-2.1 Section 6 requirements apply (you must provide the means for users to relink with a modified libgme). See [LICENSE](LICENSE) for details.

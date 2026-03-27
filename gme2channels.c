@@ -1,5 +1,5 @@
 /*
- * spc2channels - Extract individual channels from SPC/game music files as WAV
+ * gme2channels - Extract individual channels from game music files as WAV
  *
  * Uses libgme (game-music-emu) for emulation with per-voice muting.
  * Supports SPC (SNES), NSF (NES), GBS (GB), VGM (SMS/GG/MD), and other
@@ -314,10 +314,21 @@ static int render_pass(const options_t *opts, int voice_idx, int voice_count,
         wav_write_header(ctx.f2, 1, (uint32_t)opts->sample_rate, 0);
     }
 
-    /* Render loop */
+    /* Render loop: use fixed sample count to guarantee identical length
+     * across all voices.  libgme's silence detector can fast-forward CPU
+     * emulation during quiet passages, causing gme_track_ended() to fire
+     * at different sample counts per voice.  Counting frames ourselves
+     * eliminates this alignment issue. */
+    int total_frames = (int)((long long)(play_length_ms + opts->fade_ms)
+                             * opts->sample_rate / 1000);
+    int remaining = total_frames;
     short buf[BUFFER_SIZE * 2];
-    while (!gme_track_ended(emu)) {
-        err = gme_play(emu, BUFFER_SIZE * 2, buf);
+
+    while (remaining > 0) {
+        int frames = (remaining < BUFFER_SIZE) ? remaining : BUFFER_SIZE;
+        int stereo_samples = frames * 2;
+
+        err = gme_play(emu, stereo_samples, buf);
         if (err) {
             fprintf(stderr, "Playback error: %s\n", err);
             break;
@@ -325,20 +336,21 @@ static int render_pass(const options_t *opts, int voice_idx, int voice_count,
 
         switch (fmt) {
         case FMT_STEREO:
-            fwrite(buf, sizeof(short), BUFFER_SIZE * 2, ctx.f1);
-            ctx.bytes1 += BUFFER_SIZE * 2 * sizeof(short);
+            fwrite(buf, sizeof(short), (size_t)stereo_samples, ctx.f1);
+            ctx.bytes1 += (uint32_t)(stereo_samples * sizeof(short));
             break;
         case FMT_MONO:
-            write_mono_from_stereo(ctx.f1, buf, BUFFER_SIZE * 2);
-            ctx.bytes1 += BUFFER_SIZE * sizeof(short);
+            write_mono_from_stereo(ctx.f1, buf, stereo_samples);
+            ctx.bytes1 += (uint32_t)(frames * sizeof(short));
             break;
         case FMT_SPLIT_LR:
-            write_channel_from_stereo(ctx.f1, buf, BUFFER_SIZE * 2, 0);
-            write_channel_from_stereo(ctx.f2, buf, BUFFER_SIZE * 2, 1);
-            ctx.bytes1 += BUFFER_SIZE * sizeof(short);
-            ctx.bytes2 += BUFFER_SIZE * sizeof(short);
+            write_channel_from_stereo(ctx.f1, buf, stereo_samples, 0);
+            write_channel_from_stereo(ctx.f2, buf, stereo_samples, 1);
+            ctx.bytes1 += (uint32_t)(frames * sizeof(short));
+            ctx.bytes2 += (uint32_t)(frames * sizeof(short));
             break;
         }
+        remaining -= frames;
     }
 
     /* Finalize */
@@ -395,7 +407,7 @@ static int show_info(const options_t *opts) {
  * ================================================================ */
 static void print_usage(const char *prog) {
     printf(
-        "spc2channels v%s - Extract channels from SPC/game music as WAV\n"
+        "gme2channels v%s - Extract channels from game music files as WAV\n"
         "\n"
         "Usage:\n"
         "  %s [options] <input_file> <output_dir>\n"
@@ -408,7 +420,7 @@ static void print_usage(const char *prog) {
         "  -d, --duration <sec>    Playback duration in seconds (default: auto-detect)\n"
         "      --fade <sec>        Fade-out duration in seconds (default: 5)\n"
         "  -r, --rate <hz>         Sample rate (default: 44100)\n"
-        "      --no-echo           Disable SPC echo/reverb DSP effect\n"
+        "      --no-echo           Disable echo/reverb DSP effect (SPC only)\n"
         "      --mix               Also output full stereo mix\n"
         "      --info              Show file/voice info only (no output)\n"
         "  -h, --help              Show this help\n"
@@ -468,7 +480,7 @@ int main(int argc, char *argv[]) {
         case 'E': opts.no_echo = 1; break;
         case 'M': opts.with_mix = 1; break;
         case 'I': opts.info_only = 1; break;
-        case 'v': printf("spc2channels v%s\n", VERSION); return 0;
+        case 'v': printf("gme2channels v%s\n", VERSION); return 0;
         case 'h': print_usage(argv[0]); return 0;
         default:  print_usage(argv[0]); return 1;
         }
@@ -521,11 +533,12 @@ int main(int argc, char *argv[]) {
         play_length_ms = DEFAULT_DURATION_MS;
     }
 
-    printf("spc2channels v%s\n", VERSION);
+    printf("gme2channels v%s\n", VERSION);
     printf("Input      : %s\n", opts.input_path);
     printf("Output dir : %s\n", opts.output_dir);
     printf("Voices     : %d\n", voice_count);
-    printf("Duration   : %d ms (fade: %d ms)\n", play_length_ms, opts.fade_ms);
+    printf("Duration   : %d ms (fade: %d ms, total: %d ms)\n",
+           play_length_ms, opts.fade_ms, play_length_ms + opts.fade_ms);
     printf("Sample rate: %d Hz\n", opts.sample_rate);
     printf("Format     : %s", fmt_names[opts.default_fmt]);
     if (opts.ch_fmt_count > 0) {

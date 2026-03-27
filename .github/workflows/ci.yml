@@ -34,8 +34,8 @@ jobs:
           sudo make install
           sudo ldconfig
 
-      - name: Build spc2channels
+      - name: Build gme2channels
         run: make
 
       - name: Verify binary
-        run: ./spc2channels --version
+        run: ./gme2channels --version
