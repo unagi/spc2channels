@@ -1,8 +1,8 @@
 /*
- * Mock gme/gme.h for unit testing spc2channels
+ * Mock gme/gme.h for unit testing gme2channels
  *
  * Provides type definitions and stub implementations so that
- * spc2channels.c compiles without the real libgme.
+ * gme2channels.c compiles without the real libgme.
  */
 #ifndef MOCK_GME_H
 #define MOCK_GME_H

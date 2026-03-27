@@ -1,6 +1,6 @@
 # Build artifacts
-spc2channels
-spc2channels.exe
+gme2channels
+gme2channels.exe
 test_runner
 build/
 *.o

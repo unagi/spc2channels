@@ -1,7 +1,7 @@
 /*
- * Unit tests for spc2channels utility functions.
+ * Unit tests for gme2channels utility functions.
  *
- * Includes spc2channels.c directly (with mock libgme) to test static
+ * Includes gme2channels.c directly (with mock libgme) to test static
  * functions: parsing, WAV writing, audio conversion, etc.
  */
 #include <stdio.h>
@@ -10,8 +10,8 @@
 #include <assert.h>
 
 /* Rename main so it doesn't conflict with our test main */
-#define main spc2channels_main
-#include "../spc2channels.c"
+#define main gme2channels_main
+#include "../gme2channels.c"
 #undef main
 
 /* Helper to suppress warn_unused_result for fread in tests */
@@ -174,10 +174,7 @@ TEST(test_get_ch_format_override) {
  *  Tests: WAV header
  * ================================================================ */
 TEST(test_wav_header_stereo) {
-    char tmpname[] = "/tmp/test_wav_XXXXXX";
-    int fd = mkstemp(tmpname);
-    ASSERT_TRUE(fd >= 0);
-    FILE *f = fdopen(fd, "wb+");
+    FILE *f = tmpfile();
     ASSERT_TRUE(f != NULL);
 
     wav_write_header(f, 2, 44100, 1000);
@@ -213,13 +210,10 @@ TEST(test_wav_header_stereo) {
     ASSERT_EQ(audio_fmt, 1);
 
     fclose(f);
-    remove(tmpname);
 }
 
 TEST(test_wav_header_mono) {
-    char tmpname[] = "/tmp/test_wav_XXXXXX";
-    int fd = mkstemp(tmpname);
-    FILE *f = fdopen(fd, "wb+");
+    FILE *f = tmpfile();
     ASSERT_TRUE(f != NULL);
 
     wav_write_header(f, 1, 22050, 500);
@@ -237,13 +231,10 @@ TEST(test_wav_header_mono) {
     ASSERT_EQ(sr, 22050);
 
     fclose(f);
-    remove(tmpname);
 }
 
 TEST(test_wav_finalize) {
-    char tmpname[] = "/tmp/test_wav_XXXXXX";
-    int fd = mkstemp(tmpname);
-    FILE *f = fdopen(fd, "wb+");
+    FILE *f = tmpfile();
     ASSERT_TRUE(f != NULL);
 
     wav_write_header(f, 2, 44100, 0);
@@ -268,16 +259,13 @@ TEST(test_wav_finalize) {
     ASSERT_EQ(ds, data_size);
 
     fclose(f);
-    remove(tmpname);
 }
 
 /* ================================================================
  *  Tests: write_mono_from_stereo
  * ================================================================ */
 TEST(test_write_mono_from_stereo) {
-    char tmpname[] = "/tmp/test_mono_XXXXXX";
-    int fd = mkstemp(tmpname);
-    FILE *f = fdopen(fd, "wb+");
+    FILE *f = tmpfile();
     ASSERT_TRUE(f != NULL);
 
     /* stereo input: L=100, R=200, L=300, R=400 */
@@ -292,13 +280,10 @@ TEST(test_write_mono_from_stereo) {
     ASSERT_EQ(mono[1], 350);  /* (300+400)/2 */
 
     fclose(f);
-    remove(tmpname);
 }
 
 TEST(test_write_mono_from_stereo_negative) {
-    char tmpname[] = "/tmp/test_mono2_XXXXXX";
-    int fd = mkstemp(tmpname);
-    FILE *f = fdopen(fd, "wb+");
+    FILE *f = tmpfile();
     ASSERT_TRUE(f != NULL);
 
     short stereo[] = {-100, 100, 0, 0};
@@ -312,16 +297,13 @@ TEST(test_write_mono_from_stereo_negative) {
     ASSERT_EQ(mono[1], 0);   /* (0+0)/2 */
 
     fclose(f);
-    remove(tmpname);
 }
 
 /* ================================================================
  *  Tests: write_channel_from_stereo
  * ================================================================ */
 TEST(test_write_left_channel) {
-    char tmpname[] = "/tmp/test_left_XXXXXX";
-    int fd = mkstemp(tmpname);
-    FILE *f = fdopen(fd, "wb+");
+    FILE *f = tmpfile();
     ASSERT_TRUE(f != NULL);
 
     short stereo[] = {100, 200, 300, 400};
@@ -335,13 +317,10 @@ TEST(test_write_left_channel) {
     ASSERT_EQ(out[1], 300);
 
     fclose(f);
-    remove(tmpname);
 }
 
 TEST(test_write_right_channel) {
-    char tmpname[] = "/tmp/test_right_XXXXXX";
-    int fd = mkstemp(tmpname);
-    FILE *f = fdopen(fd, "wb+");
+    FILE *f = tmpfile();
     ASSERT_TRUE(f != NULL);
 
     short stereo[] = {100, 200, 300, 400};
@@ -355,14 +334,13 @@ TEST(test_write_right_channel) {
     ASSERT_EQ(out[1], 400);
 
     fclose(f);
-    remove(tmpname);
 }
 
 /* ================================================================
  *  Main
  * ================================================================ */
 int main(void) {
-    printf("spc2channels unit tests\n");
+    printf("gme2channels unit tests\n");
     printf("========================\n\n");
 
     printf("[sanitize_filename]\n");

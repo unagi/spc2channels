@@ -1,4 +1,4 @@
-# spc2channels - Makefile
+# gme2channels - Makefile
 #
 # Dependencies: libgme (game-music-emu)
 #   Install: https://github.com/libgme/game-music-emu
@@ -10,8 +10,8 @@
 
 CC       ?= gcc
 CFLAGS   ?= -O2 -Wall -Wextra
-TARGET    = spc2channels
-SRC       = spc2channels.c
+TARGET    = gme2channels
+SRC       = gme2channels.c
 
 # libgme location (override with GME_PREFIX=/your/path)
 GME_PREFIX ?= /usr/local
@@ -24,7 +24,7 @@ GME_LIBS    = -lgme
 STATIC_LIBS = $(GME_PREFIX)/lib/libgme.a -lstdc++ -lm -lz
 
 # Unit test (no libgme required - uses mock)
-TEST_SRC     = tests/test_spc2channels.c
+TEST_SRC     = tests/test_gme2channels.c
 TEST_TARGET  = test_runner
 
 .PHONY: all static clean install uninstall test
